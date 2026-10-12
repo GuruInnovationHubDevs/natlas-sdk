@@ -11,8 +11,9 @@ const read = (f) =>
     ? fs.readFileSync(path.join(dir, f), "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l))
     : [];
 
-const usage = read("usage.jsonl").filter((u) => !u.mock);
+const usage = read("usage.jsonl").filter((u) => !u.mock && !u.cancelled);
 const feedback = read("feedback.jsonl");
+const ratings = read("ratings.jsonl").filter((r) => !r.mock);
 const count = (arr, key) => arr.reduce((m, x) => { const k = x[key] || "not given"; m[k] = (m[k] ?? 0) + 1; return m; }, {});
 const ok = usage.filter((u) => u.ok);
 const lat = ok.map((u) => u.latencyMs).sort((a, b) => a - b);
@@ -28,6 +29,16 @@ if (usage.length) {
   lines.push(`- By mode: ${Object.entries(count(usage, "mode")).map(([k, v]) => `${k} ${v}`).join(", ")}`);
   lines.push(`- By answer language: ${Object.entries(count(usage, "language")).map(([k, v]) => `${k} ${v}`).join(", ")}`);
   lines.push(`- Latency (successful, end to end): median ${pct(50)} ms, p90 ${pct(90)} ms`);
+}
+lines.push("", "## Answer ratings (thumbs up / down in the playground)", "");
+lines.push(`- Ratings: **${ratings.length}**`);
+if (ratings.length) {
+  const byLang = {};
+  for (const r of ratings) (byLang[r.language] ??= { up: 0, down: 0 })[r.vote] += 1;
+  lines.push("", "| Language | 👍 | 👎 | % positive |", "|---|---|---|---|");
+  for (const [lang, v] of Object.entries(byLang)) {
+    lines.push(`| ${lang} | ${v.up} | ${v.down} | ${Math.round((100 * v.up) / (v.up + v.down))}% |`);
+  }
 }
 lines.push("", "## External beta testers", "");
 lines.push(`- Feedback responses: **${feedback.length}**`);

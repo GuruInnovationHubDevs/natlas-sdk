@@ -35,6 +35,7 @@ const client = new NAtlas({
 const MODES = ["chat", "translate", "summarize"];
 const MAX_TOKENS = Number(process.env.PLAYGROUND_MAX_TOKENS ?? 350);
 const hits = new Map();
+let healthCache;
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -54,10 +55,14 @@ const server = http.createServer(async (req, res) => {
         const p = path.join(DATA_DIR, f);
         return fs.existsSync(p) ? fs.readFileSync(p, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
       };
-      return sendJSON(res, 200, { usage: read("usage.jsonl"), feedback: read("feedback.jsonl") });
+      return sendJSON(res, 200, { usage: read("usage.jsonl"), feedback: read("feedback.jsonl"), ratings: read("ratings.jsonl") });
     }
     if (req.method === "GET" && url.pathname === "/api/health") {
-      return sendJSON(res, 200, await client.health());
+      // Cached: each check runs a tiny generation, which is expensive on CPU hosting.
+      if (!healthCache || Date.now() - healthCache.at > 60_000) {
+        healthCache = { at: Date.now(), value: await client.health() };
+      }
+      return sendJSON(res, 200, healthCache.value);
     }
     if (req.method === "POST" && url.pathname === "/api/generate") {
       if (rateLimited(req)) return sendJSON(res, 429, { error: "Too many requests. Please wait a minute." });
@@ -67,6 +72,19 @@ const server = http.createServer(async (req, res) => {
       // Token-free proxy for mobile apps: point the SDK's baseURL at this server.
       if (rateLimited(req)) return sendJSON(res, 429, { error: "Too many requests. Please wait a minute." });
       return proxy(req, res);
+    }
+    if (req.method === "POST" && url.pathname === "/api/rate") {
+      // Thumbs up/down on a single answer: anonymous, no text stored.
+      const body = await readJSON(req);
+      if (body.vote !== "up" && body.vote !== "down") return sendJSON(res, 400, { error: "vote must be up or down" });
+      append("ratings.jsonl", {
+        at: new Date().toISOString(),
+        vote: body.vote,
+        mode: MODES.includes(body.mode) ? body.mode : "chat",
+        language: isLanguageCode(body.language) ? body.language : "en",
+        mock: MOCK,
+      });
+      return sendJSON(res, 200, { ok: true });
     }
     if (req.method === "POST" && url.pathname === "/api/feedback") {
       const body = await readJSON(req);
@@ -104,26 +122,40 @@ async function generate(req, res) {
         .map((m) => ({ role: m.role, content: clip(m.content, 4000) }))
     : [];
 
-  const params = buildParams({ mode, language, from, text, temperature, history });
+  // Stop generating (and free the model) if the visitor presses Stop or leaves the page.
+  const abort = new AbortController();
+  res.on("close", () => {
+    if (!res.writableFinished) abort.abort();
+  });
+  const params = { ...buildParams({ mode, language, from, text, temperature, history }), signal: abort.signal };
   res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" });
   const started = Date.now();
+  let firstTokenMs;
   let chars = 0;
   let ok = true;
   try {
     for await (const chunk of client.chatStream(params)) {
+      firstTokenMs ??= Date.now() - started;
       chars += chunk.length;
       res.write(`data: ${JSON.stringify({ delta: chunk })}\n\n`);
     }
   } catch (e) {
     ok = false;
-    const message = e instanceof NAtlasError ? friendly(e) : "Something went wrong.";
-    res.write(`data: ${JSON.stringify({ error: message })}\n\n`);
+    if (!abort.signal.aborted) {
+      const message = e instanceof NAtlasError ? friendly(e) : "Something went wrong.";
+      res.write(`data: ${JSON.stringify({ error: message })}\n\n`);
+    }
   }
   const latencyMs = Date.now() - started;
-  res.write(`data: ${JSON.stringify({ done: true, latencyMs })}\n\n`);
-  res.end();
+  if (!abort.signal.aborted) {
+    res.write(`data: ${JSON.stringify({ done: true, latencyMs, firstTokenMs })}\n\n`);
+    res.end();
+  }
   // Usage log for integration evidence: no prompt or answer text is stored.
-  append("usage.jsonl", { at: new Date().toISOString(), mode, language, from, inputChars: text.length, outputChars: chars, latencyMs, ok, mock: MOCK });
+  append("usage.jsonl", {
+    at: new Date().toISOString(), mode, language, from, inputChars: text.length, outputChars: chars,
+    latencyMs, firstTokenMs, ok, cancelled: abort.signal.aborted, mock: MOCK,
+  });
 }
 
 // Forward an OpenAI-compatible request to the N-ATLAS endpoint, adding the server-side token.
@@ -133,12 +165,17 @@ async function proxy(req, res) {
   if (!Array.isArray(body.messages) || body.messages.length === 0) return sendJSON(res, 400, { error: "messages required" });
   body.max_tokens = Math.min(Number(body.max_tokens) || 512, 1024);
   const target = MOCK ? null : `${process.env.NATLAS_BASE_URL.replace(/\/+$/, "").replace(/\/v1$/, "")}/v1/chat/completions`;
+  const abort = new AbortController();
+  res.on("close", () => {
+    if (!res.writableFinished) abort.abort();
+  });
   let upstream;
   try {
     upstream = MOCK
       ? await mockFetch(target, { body: JSON.stringify(body) })
       : await fetch(target, {
           method: "POST",
+          signal: abort.signal,
           headers: {
             "content-type": "application/json",
             ...(process.env.NATLAS_API_KEY ? { authorization: `Bearer ${process.env.NATLAS_API_KEY}` } : {}),
@@ -150,11 +187,15 @@ async function proxy(req, res) {
   }
   res.writeHead(upstream.status, { "content-type": upstream.headers.get("content-type") ?? "application/json" });
   let bytes = 0;
-  if (upstream.body) {
-    for await (const chunk of upstream.body) {
-      bytes += chunk.length;
-      res.write(chunk);
+  try {
+    if (upstream.body) {
+      for await (const chunk of upstream.body) {
+        bytes += chunk.length;
+        res.write(chunk);
+      }
     }
+  } catch {
+    // client went away; upstream request was aborted
   }
   res.end();
   append("usage.jsonl", {
@@ -250,6 +291,7 @@ async function mockFetch(_url, init) {
   const words = `[mock] You said: "${last.slice(0, 80)}". Connect a real N-ATLAS endpoint to get model answers.`.split(" ");
   const stream = new ReadableStream({
     async start(c) {
+      await new Promise((r) => setTimeout(r, Number(process.env.NATLAS_MOCK_DELAY_MS ?? 0)));
       for (const w of words) {
         c.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ choices: [{ delta: { content: w + " " } }] })}\n\n`));
         await new Promise((r) => setTimeout(r, 25));
