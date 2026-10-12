@@ -30,6 +30,8 @@ const client = new NAtlas({
   model: process.env.NATLAS_MODEL,
   timeoutMs: 120_000,
   fetch: MOCK ? mockFetch : undefined,
+  // Server-specific sampling options, e.g. NATLAS_EXTRA_BODY='{"repeat_penalty":1.12}' for llama.cpp.
+  extraBody: process.env.NATLAS_EXTRA_BODY ? JSON.parse(process.env.NATLAS_EXTRA_BODY) : undefined,
 });
 
 const MODES = ["chat", "translate", "summarize"];
@@ -168,6 +170,9 @@ async function proxy(req, res) {
   const started = Date.now();
   if (!Array.isArray(body.messages) || body.messages.length === 0) return sendJSON(res, 400, { error: "messages required" });
   body.max_tokens = Math.min(Number(body.max_tokens) || 512, 1024);
+  if (process.env.NATLAS_EXTRA_BODY) {
+    for (const [k, v] of Object.entries(JSON.parse(process.env.NATLAS_EXTRA_BODY))) body[k] ??= v;
+  }
   const target = MOCK ? null : `${process.env.NATLAS_BASE_URL.replace(/\/+$/, "").replace(/\/v1$/, "")}/v1/chat/completions`;
   const abort = new AbortController();
   res.on("close", () => {

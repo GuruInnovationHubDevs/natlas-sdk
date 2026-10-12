@@ -165,6 +165,17 @@ test("XMLHttpRequest transport surfaces HTTP errors", async () => {
   }
 });
 
+test("extraBody fields are merged into every request", async () => {
+  const mock = await startMock(() => reply("ok"));
+  try {
+    const client = new NAtlas({ baseURL: mock.url, extraBody: { repeat_penalty: 1.15 } });
+    await client.ask("Hi");
+    assert.equal(mock.requests[0].body.repeat_penalty, 1.15);
+  } finally {
+    await mock.close();
+  }
+});
+
 test("requires a baseURL", () => {
   assert.throws(() => new NAtlas({}), /baseURL is required/);
 });

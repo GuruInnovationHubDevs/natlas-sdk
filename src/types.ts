@@ -35,6 +35,11 @@ export interface ClientOptions {
   transport?: "auto" | "fetch" | "xhr";
   /** Custom XMLHttpRequest constructor for the "xhr" transport (mainly for tests). */
   XMLHttpRequest?: unknown;
+  /**
+   * Extra fields merged into every request body, for server-specific options.
+   * Example for llama.cpp servers: `{ repeat_penalty: 1.12 }`.
+   */
+  extraBody?: Record<string, unknown>;
 }
 
 export interface GenerationOptions {

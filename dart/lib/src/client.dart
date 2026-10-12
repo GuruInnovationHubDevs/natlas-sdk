@@ -25,6 +25,7 @@ class NAtlas {
     this.timeout = const Duration(seconds: 60),
     this.maxRetries = 2,
     this.headers = const {},
+    this.extraBody = const {},
     http.Client? httpClient,
   })  : baseUrl = baseUrl.replaceAll(RegExp(r'/+$'), '').replaceAll(RegExp(r'/v1$'), ''),
         _http = httpClient ?? http.Client();
@@ -36,6 +37,10 @@ class NAtlas {
   final Duration timeout;
   final int maxRetries;
   final Map<String, String> headers;
+
+  /// Extra fields merged into every request body, for server-specific options
+  /// (for example `{'repeat_penalty': 1.12}` on llama.cpp servers).
+  final Map<String, dynamic> extraBody;
   final http.Client _http;
 
   Uri get _uri => Uri.parse('$baseUrl/v1/chat/completions');
@@ -192,6 +197,7 @@ class NAtlas {
       'max_tokens': maxTokens,
       'repetition_penalty': repetitionPenalty,
       'stream': stream,
+      ...extraBody,
     };
   }
 

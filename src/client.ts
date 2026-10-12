@@ -27,6 +27,7 @@ export class NAtlas {
   private readonly headers: Record<string, string>;
   private readonly fetchImpl: typeof fetch;
   private readonly transport: "auto" | "fetch" | "xhr";
+  private readonly extraBody: Record<string, unknown>;
   private readonly xhrCtor?: XHRConstructor;
 
   constructor(options: ClientOptions) {
@@ -39,6 +40,7 @@ export class NAtlas {
     this.maxRetries = options.maxRetries ?? 2;
     this.headers = options.headers ?? {};
     this.transport = options.transport ?? "auto";
+    this.extraBody = options.extraBody ?? {};
     this.xhrCtor = options.XMLHttpRequest as XHRConstructor | undefined;
     const f = options.fetch ?? globalThis.fetch;
     if (!f) throw new NAtlasError("No fetch implementation available; pass options.fetch", { code: "config" });
@@ -180,7 +182,7 @@ export class NAtlas {
     if (params.stop) body.stop = params.stop;
     // Most N-ATLAS servers (TGI, vLLM) accept this as a non-standard sampling parameter.
     body.repetition_penalty = params.repetitionPenalty ?? 1.12;
-    return body;
+    return { ...body, ...this.extraBody };
   }
 
   private async request(body: Record<string, unknown>, external?: AbortSignal): Promise<Response> {

@@ -100,6 +100,14 @@ void main() {
     await server.close(force: true);
   });
 
+  test('extraBody is merged into the request', () async {
+    final (server, bodies, _) = await mock((_) => (200, reply('ok')));
+    final natlas = NAtlas(baseUrl: 'http://127.0.0.1:${server.port}', extraBody: const {'repeat_penalty': 1.15});
+    await natlas.ask('Hi');
+    expect(bodies.first['repeat_penalty'], 1.15);
+    await server.close(force: true);
+  });
+
   test('guessLanguage recognises the four languages', () {
     expect(guessLanguage('How are you doing today?'), Language.english);
     expect(guessLanguage('Ẹ káàárọ̀, báwo ni?'), Language.yoruba);
