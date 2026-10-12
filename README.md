@@ -10,7 +10,7 @@ N-ATLAS is open, but building with it from the stacks most Nigerian web and mobi
 | React Native (Expo or bare) | `natlas-js`, with automatic streaming over XMLHttpRequest | [docs/REACT_NATIVE.md](docs/REACT_NATIVE.md) |
 | Flutter and Dart | `natlas` | [dart/README.md](dart/README.md) |
 
-[Yoruba version of this guide](docs/README.yo.md) · [Architecture](docs/ARCHITECTURE.md) · [Run N-ATLAS on an endpoint](docs/DEPLOY_NATLAS.md) · [Beta testing](docs/BETA_TESTING.md)
+**Live playground: https://natlas.guruhub.ng** · [Yoruba version of this guide](docs/README.yo.md) · [Architecture](docs/ARCHITECTURE.md) · [Run N-ATLAS on an endpoint](docs/DEPLOY_NATLAS.md) · [Beta testing](docs/BETA_TESTING.md)
 
 ---
 
@@ -118,6 +118,14 @@ npm run playground           # http://localhost:3000
 ```
 
 Run `NATLAS_MOCK=1 npm run playground` to work on the UI without an endpoint. The playground keeps your token on the server, logs anonymous usage (mode, language, timing, never the text) and collects beta-tester feedback in `playground/data/`.
+
+## Public demo endpoint
+
+For trying the SDK without your own server, `https://natlas.guruhub.ng` accepts SDK calls without a token (rate-limited, CPU-hosted, so allow 15–90 s per answer):
+
+```js
+const natlas = new NAtlas({ baseURL: "https://natlas.guruhub.ng", timeoutMs: 180_000 });
+```
 
 ## Running N-ATLAS
 

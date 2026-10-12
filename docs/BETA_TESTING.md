@@ -4,8 +4,8 @@ Thank you for testing. It takes about 20 minutes.
 
 ## What to do
 
-1. Open the playground link you were sent. Try at least one request in each mode (Chat, Translate, Summarise) and at least two languages.
-2. Copy the code shown under **Same call with natlas-js** into a small Node script and run it against the endpoint details you were given:
+1. Open the playground at **https://natlas.guruhub.ng**. Try at least one request in each mode (Chat, Translate, Summarise) and at least two languages.
+2. Copy the code shown under **Same call with natlas-js** into a small Node script and run it against the public demo endpoint (no token needed):
 
    ```bash
    mkdir natlas-test && cd natlas-test && npm init -y
@@ -15,14 +15,16 @@ Thank you for testing. It takes about 20 minutes.
    ```js
    // test.mjs
    import { NAtlas } from "natlas-js";
-   const natlas = new NAtlas({ baseURL: process.env.NATLAS_BASE_URL, apiKey: process.env.NATLAS_API_KEY });
+   const natlas = new NAtlas({ baseURL: "https://natlas.guruhub.ng", timeoutMs: 180_000 });
    const { text } = await natlas.ask("Ẹ káàárọ̀! Kí ni oúnjẹ tó dára fún ọmọdé?", { language: "yo" });
    console.log(text);
    ```
 
    ```bash
-   NATLAS_BASE_URL=... NATLAS_API_KEY=... node test.mjs
+   node test.mjs
    ```
+
+   The demo runs on CPU, so allow 15–90 seconds per answer.
 
 3. Fill in the **Beta tester feedback** form at the bottom of the playground.
 
