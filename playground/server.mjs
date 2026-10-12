@@ -14,6 +14,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 loadEnv(path.join(here, "..", ".env.local"));
 
 const PORT = Number(process.env.PORT ?? 3000);
+const HOST = process.env.HOST ?? "0.0.0.0";
 const MOCK = process.env.NATLAS_MOCK === "1";
 const DATA_DIR = process.env.PLAYGROUND_DATA_DIR ?? path.join(here, "data");
 fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -263,6 +264,6 @@ async function mockFetch(_url, init) {
   });
 }
 
-server.listen(PORT, () => {
-  console.log(`N-ATLAS Playground on http://localhost:${PORT}${MOCK ? "  (MOCK MODE)" : ""}`);
+server.listen(PORT, HOST, () => {
+  console.log(`N-ATLAS Playground on http://${HOST}:${PORT}${MOCK ? "  (MOCK MODE)" : ""}`);
 });
