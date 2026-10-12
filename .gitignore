@@ -8,3 +8,4 @@ playground/data/
 dart/.dart_tool/
 dart/pubspec.lock
 dart/build/
+deploy/vps/.env

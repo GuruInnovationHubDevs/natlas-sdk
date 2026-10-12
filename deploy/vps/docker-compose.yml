@@ -1,0 +1,57 @@
+# N-ATLAS API + playground on a single VPS (needs ~8 GB RAM, 4+ vCPU recommended).
+#   cp .env.example .env && docker compose up -d
+services:
+  natlas-api:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    restart: unless-stopped
+    command: ["-hf", "tosinamuda/N-ATLaS-GGUF:Q4_K_M", "--jinja"]
+    environment:
+      LLAMA_CACHE: /models
+      LLAMA_ARG_HOST: 0.0.0.0
+      LLAMA_ARG_PORT: 8080
+      LLAMA_ARG_CTX_SIZE: 4096
+      LLAMA_ARG_THREADS: ${THREADS:-4}
+      LLAMA_ARG_N_PARALLEL: 2
+      LLAMA_API_KEY: ${LLAMA_API_KEY:?set LLAMA_API_KEY in .env}
+    volumes:
+      - models:/models
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+  playground:
+    build:
+      context: ../..
+      dockerfile: deploy/vps/Dockerfile.playground
+    restart: unless-stopped
+    depends_on: [natlas-api]
+    environment:
+      PORT: 3000
+      NATLAS_BASE_URL: http://natlas-api:8080
+      NATLAS_API_KEY: ${LLAMA_API_KEY}
+      ADMIN_KEY: ${ADMIN_KEY:?set ADMIN_KEY in .env}
+      PLAYGROUND_DATA_DIR: /data
+    volumes:
+      - playground-data:/data
+    ports:
+      - "${PLAYGROUND_PORT:-3000}:3000"
+
+  # Optional HTTPS: set DOMAIN in .env and run with --profile https
+  caddy:
+    image: caddy:2
+    profiles: ["https"]
+    restart: unless-stopped
+    depends_on: [playground, natlas-api]
+    environment:
+      DOMAIN: ${DOMAIN:-}
+    command: >
+      sh -c 'printf "%s {\n  handle /v1/* {\n    reverse_proxy playground:3000\n  }\n  reverse_proxy playground:3000\n}\napi.%s {\n  reverse_proxy natlas-api:8080\n}\n" "$$DOMAIN" "$$DOMAIN" > /etc/caddy/Caddyfile && caddy run --config /etc/caddy/Caddyfile'
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy-data:/data
+
+volumes:
+  models:
+  playground-data:
+  caddy-data:
