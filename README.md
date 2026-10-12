@@ -6,9 +6,9 @@ N-ATLAS is open, but building with it from the stacks most Nigerian web and mobi
 
 | Platform | Package | Guide |
 |---|---|---|
-| Node, browsers, edge runtimes | `natlas-js` (this folder) | below |
-| React Native (Expo or bare) | `natlas-js`, with automatic streaming over XMLHttpRequest | [docs/REACT_NATIVE.md](docs/REACT_NATIVE.md) |
-| Flutter and Dart | `natlas` | [dart/README.md](dart/README.md) |
+| Node, browsers, edge runtimes | [`natlas-js` on npm](https://www.npmjs.com/package/natlas-js) | below |
+| React Native (Expo or bare) | [`natlas-js`](https://www.npmjs.com/package/natlas-js), with automatic streaming over XMLHttpRequest | [docs/REACT_NATIVE.md](docs/REACT_NATIVE.md) |
+| Flutter and Dart | [`natlas` on pub.dev](https://pub.dev/packages/natlas) | [dart/README.md](dart/README.md) |
 
 **Live playground: https://natlas.guruhub.ng** · [Yoruba version of this guide](docs/README.yo.md) · [Architecture](docs/ARCHITECTURE.md) · [Run N-ATLAS on an endpoint](docs/DEPLOY_NATLAS.md) · [Beta testing](docs/BETA_TESTING.md)
 

@@ -553,7 +553,7 @@ function renderCode() {
   const js = JSON.stringify(text);
   let install, code;
   if (state.platform === "dart") {
-    install = "# pubspec.yaml\ndependencies:\n  natlas:\n    git:\n      url: https://github.com/GuruInnovationHubDevs/natlas-sdk\n      path: dart";
+    install = "flutter pub add natlas";
     const setup = `import 'package:natlas/natlas.dart';\n\nfinal natlas = NAtlas(\n  baseUrl: '${PUBLIC_URL}',\n  timeout: const Duration(minutes: 3),\n);\n\n`;
     if (state.mode === "translate") code = setup + `final result = await natlas.translate(\n  ${dartStr(text)},\n  from: ${dl(from)},\n  to: ${dl(lang)},\n);\nprint(result.text);`;
     else if (state.mode === "summarize") code = setup + `final summary = await natlas.summarize(\n  ${dartStr(text)},\n  language: ${dl(lang)},\n);\nprint(summary.text);`;
