@@ -4,15 +4,12 @@ Dart and Flutter SDK for [N-ATLAS](https://huggingface.co/NCAIR1/N-ATLaS), Niger
 
 ## Install
 
-Until it's on pub.dev, add it from the repository:
-
-```yaml
-dependencies:
-  natlas:
-    git:
-      url: https://github.com/GuruInnovationHubDevs/natlas-sdk
-      path: dart
+```bash
+flutter pub add natlas   # Flutter apps
+dart pub add natlas      # Dart projects
 ```
+
+Try it against the public demo endpoint, `https://natlas.guruhub.ng`, which needs no token (CPU-hosted, so allow 15–90 s per answer).
 
 ## Use
 
