@@ -4,6 +4,6 @@ COPY package.json package-lock.json tsconfig.json ./
 RUN npm ci --ignore-scripts
 COPY src ./src
 COPY playground ./playground
-RUN npm run build
+RUN npm run compile
 EXPOSE 3000
 CMD ["node", "playground/server.mjs"]

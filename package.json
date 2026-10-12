@@ -18,10 +18,10 @@
     "docs"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node --test test/*.test.mjs",
-    "playground": "npm run build && node playground/server.mjs",
-    "example": "npm run build && node examples/quickstart.mjs",
+    "compile": "tsc -p tsconfig.json",
+    "test": "npm run compile && node --test test/*.test.mjs",
+    "playground": "npm run compile && node playground/server.mjs",
+    "example": "npm run compile && node examples/quickstart.mjs",
     "start": "node playground/server.mjs",
     "evidence": "node scripts/evidence.mjs"
   },
