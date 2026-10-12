@@ -1,0 +1,10 @@
+node_modules
+dist
+.env.local
+.env
+*.log
+.DS_Store
+playground/data/
+dart/.dart_tool/
+dart/pubspec.lock
+dart/build/

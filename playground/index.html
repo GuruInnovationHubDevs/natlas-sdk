@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N-ATLAS Playground</title>
+<style>
+  :root {
+    --bg: #f6f7fb; --surface: #ffffff; --ink: #1c2230; --muted: #5d6475; --line: #dfe3ec;
+    --brand: #002d8e; --brand-ink: #ffffff; --accent: #c80000; --code-bg: #0f1730; --code-ink: #e6ebff;
+    --ok: #127a3a; --warn: #a15c00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0d111c; --surface: #151b2b; --ink: #e8ebf3; --muted: #9aa3b8; --line: #263049;
+            --brand: #6f97ff; --brand-ink: #0d111c; --code-bg: #0a0f1f; --ok: #4cc27a; --warn: #f0a33a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px;
+           background: var(--surface); border-bottom: 1px solid var(--line); border-top: 4px solid var(--brand); }
+  header h1 { font-size: 18px; margin: 0; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  .badge { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+  .badge.ok { color: var(--ok); border-color: currentColor; } .badge.warn { color: var(--warn); border-color: currentColor; }
+  main { max-width: 1180px; margin: 0 auto; padding: 20px 16px 40px; display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+  .card h2 { font-size: 14px; margin: 0 0 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .tabs button { border: 1px solid var(--line); background: transparent; color: var(--ink); padding: 6px 12px; border-radius: 999px; cursor: pointer; font: inherit; }
+  .tabs button[aria-selected="true"] { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-bottom: 10px; }
+  label { font-size: 13px; color: var(--muted); display: grid; gap: 4px; }
+  select, textarea, input[type=text] { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
+  select { width: auto; }
+  textarea { min-height: 120px; resize: vertical; }
+  .primary { background: var(--brand); color: var(--brand-ink); border: 0; padding: 10px 18px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; }
+  .primary:disabled { opacity: .5; cursor: progress; }
+  .ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); padding: 8px 14px; border-radius: 8px; font: inherit; cursor: pointer; }
+  .chat { display: grid; gap: 8px; max-height: 420px; overflow: auto; margin-bottom: 10px; }
+  .msg { padding: 10px 12px; border-radius: 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .msg.user { background: var(--bg); border: 1px solid var(--line); justify-self: end; max-width: 90%; }
+  .msg.assistant { background: color-mix(in srgb, var(--brand) 9%, var(--surface)); max-width: 95%; }
+  .msg.error { color: var(--accent); }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  pre { background: var(--code-bg); color: var(--code-ink); padding: 14px; border-radius: 8px; overflow: auto; font-size: 13px; margin: 0; }
+  .examples { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 0; }
+  .examples button { font-size: 12px; }
+  .full { grid-column: 1 / -1; }
+  .stars { display: flex; gap: 4px; flex-direction: row-reverse; justify-content: flex-end; }
+  .stars input { display: none; }
+  .stars label { font-size: 22px; cursor: pointer; color: var(--line); }
+  .stars input:checked ~ label, .stars label:hover, .stars label:hover ~ label { color: #f0a33a; }
+  .grid2 { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 16px 24px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>N-ATLAS Playground</h1>
+    <p>Try N-ATLAS in English, Hausa, Igbo and Yoruba, then copy the SDK code.</p>
+  </div>
+  <span id="status" class="badge">Checking model…</span>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Try it</h2>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-mode="chat" aria-selected="true">Chat</button>
+      <button role="tab" data-mode="translate" aria-selected="false">Translate</button>
+      <button role="tab" data-mode="summarize" aria-selected="false">Summarise</button>
+    </div>
+
+    <div class="row">
+      <label id="fromWrap" class="hidden">From
+        <select id="from"></select>
+      </label>
+      <label><span id="langLabel">Answer in</span>
+        <select id="language"></select>
+      </label>
+      <label>Creativity <span id="tempVal">0.2</span>
+        <input id="temperature" type="range" min="0" max="1" step="0.1" value="0.2">
+      </label>
+    </div>
+
+    <div id="chatLog" class="chat" aria-live="polite"></div>
+
+    <textarea id="input" aria-label="Your text" placeholder="Ask a question or paste text…"></textarea>
+    <div class="examples" id="examples"></div>
+    <div class="row" style="margin-top:10px">
+      <button id="run" class="primary">Send</button>
+      <button id="clear" class="ghost">Clear</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Same call with natlas-js</h2>
+    <pre id="code"></pre>
+    <p class="meta">Install: <code>npm install natlas-js</code>. Keep your endpoint token on the server.</p>
+  </section>
+
+  <section class="card full" id="feedback">
+    <h2>Beta tester feedback</h2>
+    <p class="meta" style="margin-top:0">Testing the SDK or playground? Tell us what worked and what didn't. It takes two minutes.</p>
+    <form id="fbForm">
+      <div class="grid2">
+        <label>Name (optional) <input type="text" name="name" maxlength="80"></label>
+        <label>Role, e.g. "backend developer" <input type="text" name="role" maxlength="80"></label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label>Overall rating
+          <span class="stars">
+            <input type="radio" id="s5" name="rating" value="5"><label for="s5">★</label>
+            <input type="radio" id="s4" name="rating" value="4"><label for="s4">★</label>
+            <input type="radio" id="s3" name="rating" value="3"><label for="s3">★</label>
+            <input type="radio" id="s2" name="rating" value="2"><label for="s2">★</label>
+            <input type="radio" id="s1" name="rating" value="1"><label for="s1">★</label>
+          </span>
+        </label>
+        <label>How easy was it to integrate?
+          <select name="easeOfUse"><option>Very easy</option><option>Easy</option><option>OK</option><option>Hard</option></select>
+        </label>
+        <label>Would you use it in a project?
+          <select name="wouldUse"><option>Yes</option><option>Maybe</option><option>No</option></select>
+        </label>
+      </div>
+      <div class="grid2">
+        <label>What worked well? <textarea name="worked" maxlength="1000" style="min-height:80px"></textarea></label>
+        <label>What was difficult or broken? <textarea name="problems" maxlength="1000" style="min-height:80px"></textarea></label>
+      </div>
+      <div class="row" style="margin-top:10px"><button class="primary" type="submit">Send feedback</button><span id="fbMsg" class="meta"></span></div>
+    </form>
+  </section>
+</main>
+
+<footer>Built with N-ATLAS (NCAIR, Awarri Technologies) · natlas-js by Guru Innovation Hub, Calabar</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const EXAMPLES = {
+  chat: ["Explain inflation to a market trader in simple terms.", "Kedu ka m ga-esi chekwaa ego m?", "Báwo ni mo ṣe lè dáàbò bo ara mi lọ́wọ́ ibà?"],
+  translate: ["Wash your hands with soap before eating.", "The clinic opens at 8 o'clock on Monday.", "Please bring your NIN slip to the bank."],
+  summarize: ["The Federal Government has opened applications for a national AI challenge. Teams must build working tools on N-ATLAS, Nigeria's multilingual language model, and show real users testing them. Shortlisted teams get mentorship and compute credits, and winners get incubation and investor introductions."],
+};
+let mode = "chat";
+let history = [];
+let languages = {};
+
+async function init() {
+  const cfg = await fetch("/api/config").then((r) => r.json());
+  languages = cfg.languages;
+  for (const sel of [$("language"), $("from")]) {
+    sel.innerHTML = Object.entries(languages).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
+  }
+  $("language").value = "en";
+  $("from").value = "en";
+  if (cfg.mock) setStatus("Mock mode: no model connected", "warn");
+  else fetch("/api/health").then((r) => r.json()).then((h) =>
+    h.ok ? setStatus(`N-ATLAS online · ${h.latencyMs} ms`, "ok") : setStatus("Model unreachable", "warn"));
+  renderExamples();
+  renderCode();
+}
+
+function setStatus(text, kind) { $("status").textContent = text; $("status").className = `badge ${kind}`; }
+
+document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
+  mode = b.dataset.mode;
+  document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+  $("fromWrap").classList.toggle("hidden", mode !== "translate");
+  $("langLabel").textContent = mode === "translate" ? "To" : "Answer in";
+  if (mode === "translate" && $("language").value === "en") $("language").value = "yo";
+  history = []; $("chatLog").innerHTML = "";
+  renderExamples(); renderCode();
+}));
+
+["language", "from", "temperature", "input"].forEach((id) => $(id).addEventListener("input", () => {
+  $("tempVal").textContent = $("temperature").value; renderCode();
+}));
+
+function renderExamples() {
+  $("examples").innerHTML = "";
+  for (const ex of EXAMPLES[mode]) {
+    const b = document.createElement("button");
+    b.className = "ghost"; b.type = "button"; b.textContent = ex.length > 48 ? ex.slice(0, 48) + "…" : ex;
+    b.onclick = () => { $("input").value = ex; renderCode(); };
+    $("examples").appendChild(b);
+  }
+}
+
+function renderCode() {
+  const lang = $("language").value, from = $("from").value, temp = $("temperature").value;
+  const text = JSON.stringify($("input").value || "Your text here");
+  const setup = `import { NAtlas } from "natlas-js";\n\nconst natlas = new NAtlas({\n  baseURL: process.env.NATLAS_BASE_URL,\n  apiKey: process.env.NATLAS_API_KEY,\n});\n\n`;
+  let call;
+  if (mode === "translate") call = `const { text } = await natlas.translate({\n  text: ${text},\n  from: "${from}",\n  to: "${lang}",\n});`;
+  else if (mode === "summarize") call = `const { text } = await natlas.summarize({\n  text: ${text},\n  language: "${lang}",\n});`;
+  else call = `for await (const chunk of natlas.chatStream({\n  messages: [{ role: "user", content: ${text} }],\n  language: "${lang}",\n  temperature: ${temp},\n})) {\n  process.stdout.write(chunk);\n}`;
+  $("code").textContent = setup + call;
+}
+
+function addMsg(role, text) {
+  const d = document.createElement("div");
+  d.className = `msg ${role}`; d.textContent = text;
+  $("chatLog").appendChild(d); $("chatLog").scrollTop = $("chatLog").scrollHeight;
+  return d;
+}
+
+async function run() {
+  const text = $("input").value.trim();
+  if (!text) return;
+  $("run").disabled = true;
+  if (mode !== "chat") { $("chatLog").innerHTML = ""; }
+  addMsg("user", text);
+  const out = addMsg("assistant", "…");
+  const meta = document.createElement("div"); meta.className = "meta";
+  let answer = "";
+  try {
+    const res = await fetch("/api/generate", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mode, text, language: $("language").value, from: $("from").value,
+                             temperature: Number($("temperature").value), history }),
+    });
+    if (!res.ok || !res.body) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
+    const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "";
+    while (true) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf("\n\n")) !== -1) {
+        const line = buf.slice(0, i); buf = buf.slice(i + 2);
+        if (!line.startsWith("data:")) continue;
+        const ev = JSON.parse(line.slice(5));
+        if (ev.delta) { answer += ev.delta; out.textContent = answer; }
+        if (ev.error) { out.classList.add("error"); out.textContent = ev.error; }
+        if (ev.done) meta.textContent = `${languages[$("language").value].name} · ${(ev.latencyMs / 1000).toFixed(1)} s`;
+      }
+    }
+    out.appendChild(meta);
+    if (mode === "chat" && answer) history.push({ role: "user", content: text }, { role: "assistant", content: answer });
+    $("input").value = ""; renderCode();
+  } catch (e) {
+    out.classList.add("error"); out.textContent = e.message;
+  } finally { $("run").disabled = false; }
+}
+
+$("run").onclick = run;
+$("input").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) run(); });
+$("clear").onclick = () => { history = []; $("chatLog").innerHTML = ""; $("input").value = ""; renderCode(); };
+
+$("fbForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  if (!data.rating) { $("fbMsg").textContent = "Please give a rating."; return; }
+  const r = await fetch("/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) });
+  $("fbMsg").textContent = r.ok ? "Thank you! Feedback received." : "Could not send feedback.";
+  if (r.ok) e.target.reset();
+});
+
+init();
+</script>
+</body>
+</html>

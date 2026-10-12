@@ -1,0 +1,52 @@
+{
+  "name": "natlas-js",
+  "version": "0.1.0",
+  "description": "TypeScript/JavaScript SDK and playground for N-ATLAS, Nigeria's multilingual language model (English, Hausa, Igbo, Yoruba).",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "playground": "npm run build && node playground/server.mjs",
+    "example": "npm run build && node examples/quickstart.mjs",
+    "start": "node playground/server.mjs",
+    "evidence": "node scripts/evidence.mjs",
+    "prepare": "tsc -p tsconfig.json"
+  },
+  "keywords": [
+    "n-atlas",
+    "llm",
+    "nigeria",
+    "hausa",
+    "igbo",
+    "yoruba",
+    "sdk",
+    "ai"
+  ],
+  "author": "Guru Innovation Hub",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GuruInnovationHubDevs/natlas-sdk.git"
+  },
+  "homepage": "https://github.com/GuruInnovationHubDevs/natlas-sdk#readme"
+}

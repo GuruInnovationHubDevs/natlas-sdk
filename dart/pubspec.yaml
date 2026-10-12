@@ -1,0 +1,13 @@
+name: natlas
+description: Dart and Flutter SDK for N-ATLAS, Nigeria's multilingual language model for English, Hausa, Igbo and Yoruba.
+version: 0.1.0
+homepage: https://guruhub.ng
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  http: ^1.2.0
+
+dev_dependencies:
+  test: ^1.25.0
