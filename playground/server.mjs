@@ -32,6 +32,7 @@ const client = new NAtlas({
 });
 
 const MODES = ["chat", "translate", "summarize"];
+const MAX_TOKENS = Number(process.env.PLAYGROUND_MAX_TOKENS ?? 350);
 const hits = new Map();
 
 const server = http.createServer(async (req, res) => {
@@ -42,6 +43,17 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "GET" && url.pathname === "/api/config") {
       return sendJSON(res, 200, { mock: MOCK, languages: LANGUAGES, model: process.env.NATLAS_MODEL ?? "NCAIR1/N-ATLaS" });
+    }
+    if (req.method === "GET" && url.pathname === "/api/evidence") {
+      // Download usage and feedback logs (hosts like free Spaces don't keep files across restarts).
+      if (!process.env.ADMIN_KEY || url.searchParams.get("key") !== process.env.ADMIN_KEY) {
+        return sendJSON(res, 403, { error: "Forbidden" });
+      }
+      const read = (f) => {
+        const p = path.join(DATA_DIR, f);
+        return fs.existsSync(p) ? fs.readFileSync(p, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)) : [];
+      };
+      return sendJSON(res, 200, { usage: read("usage.jsonl"), feedback: read("feedback.jsonl") });
     }
     if (req.method === "GET" && url.pathname === "/api/health") {
       return sendJSON(res, 200, await client.health());
@@ -153,17 +165,18 @@ async function proxy(req, res) {
 function buildParams({ mode, language, from, text, temperature, history }) {
   if (mode === "translate") {
     const p = { ...translatePrompt(from, language), temperature: Math.min(temperature, 0.2) };
-    return { ...p, messages: [{ role: "user", content: text }] };
+    return { ...p, maxTokens: MAX_TOKENS, messages: [{ role: "user", content: text }] };
   }
   if (mode === "summarize") {
     return {
       language,
       temperature,
+      maxTokens: MAX_TOKENS,
       system: "Summarise the user's text in 3 short bullet points. Keep key facts and numbers.",
       messages: [{ role: "user", content: text }],
     };
   }
-  return { language, temperature, messages: [...history, { role: "user", content: text }] };
+  return { language, temperature, maxTokens: MAX_TOKENS, messages: [...history, { role: "user", content: text }] };
 }
 
 function translatePrompt(from, to) {
