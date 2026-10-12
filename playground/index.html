@@ -4,18 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>N-ATLAS Playground</title>
+<link rel="icon" type="image/svg+xml" href="/natlas-logo.svg">
 <meta name="description" content="Talk to N-ATLAS, Nigeria's AI language model, in Hausa, Igbo, Yoruba and English, and copy ready-made SDK code for JavaScript, React Native and Flutter.">
 <style>
   :root {
-    --bg: #f4f6fb; --surface: #ffffff; --surface-2: #f0f3f9; --ink: #141a29; --muted: #5a6275; --line: #dde2ec;
-    --brand: #0b3a9e; --brand-strong: #002d8e; --brand-ink: #ffffff; --brand-soft: #e7eeff;
-    --accent: #c80000; --ok: #12784a; --warn: #9a5a00; --code-bg: #0e1530; --code-ink: #e4e9ff;
+    --bg: #f5f7f5; --surface: #ffffff; --surface-2: #eff3f0; --ink: #141a29; --muted: #5a6275; --line: #dde4df;
+    --brand: #0a6b3d; --brand-strong: #024e2d; --brand-ink: #ffffff; --brand-soft: #e7f4ec; --gold: #eea922;
+    --accent: #c80000; --ok: #12784a; --warn: #9a5a00; --code-bg: #0d1f17; --code-ink: #e3f2ea;
     --radius: 14px; --shadow: 0 1px 2px rgba(16,24,40,.06), 0 4px 16px rgba(16,24,40,.06);
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg: #0b0f1a; --surface: #131a2a; --surface-2: #19223a; --ink: #e8ecf5; --muted: #9aa4bb; --line: #263150;
-            --brand: #7aa2ff; --brand-strong: #9cbbff; --brand-ink: #0b0f1a; --brand-soft: #1b2a52;
-            --ok: #4fd18b; --warn: #f2b155; --code-bg: #0a0f1f; --shadow: none; }
+            --brand: #4cc489; --brand-strong: #7ddcab; --brand-ink: #07140d; --brand-soft: #123524; --gold: #f2b84b;
+            --ok: #4fd18b; --warn: #f2b155; --code-bg: #08130d; --shadow: none; }
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
@@ -29,8 +30,10 @@
   .top { background: var(--surface); border-bottom: 1px solid var(--line); }
   .top-inner { max-width: 1240px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; min-width: 0; }
-  .mark { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, var(--brand-strong), var(--accent)); color: #fff;
-          display: grid; place-items: center; font-weight: 800; letter-spacing: -.02em; flex: none; }
+  .logo { height: 44px; width: auto; display: block; flex: none; }
+  .logo-wrap { display: flex; align-items: center; padding-right: 12px; border-right: 1px solid var(--line); }
+  @media (prefers-color-scheme: dark) { .logo-wrap { background: #fff; border-radius: 10px; padding: 4px 8px; border-right: 0; } }
+  @media (max-width: 560px) { .logo { height: 36px; } }
   .brand h1 { font-size: 17px; margin: 0; line-height: 1.2; }
   .brand p { margin: 0; font-size: 12.5px; color: var(--muted); }
   .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; background: var(--surface); }
@@ -80,7 +83,7 @@
   .bubble p { margin: 0 0 8px; } .bubble p:last-child { margin-bottom: 0; }
   .bubble ul, .bubble ol { margin: 4px 0 8px; padding-left: 22px; }
   .bubble code { background: color-mix(in srgb, var(--ink) 8%, transparent); padding: 1px 5px; border-radius: 5px; font-size: .92em; }
-  .cursor { display: inline-block; width: 8px; height: 1.05em; vertical-align: -2px; background: var(--brand); margin-left: 2px; animation: blink 1s steps(2) infinite; }
+  .cursor { display: inline-block; width: 8px; height: 1.05em; vertical-align: -2px; background: var(--gold); margin-left: 2px; animation: blink 1s steps(2) infinite; }
   @keyframes blink { 50% { opacity: 0; } }
   .thinking { display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: 14px; }
   .dots span { display: inline-block; width: 7px; height: 7px; margin-right: 3px; border-radius: 50%; background: var(--brand); animation: bounce 1.2s infinite ease-in-out; }
@@ -96,7 +99,7 @@
   .skel i:nth-child(1) { width: 92%; } .skel i:nth-child(2) { width: 78%; } .skel i:nth-child(3) { width: 55%; }
   @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
   .bar { height: 3px; border-radius: 3px; background: color-mix(in srgb, var(--brand) 18%, transparent); overflow: hidden; position: relative; }
-  .bar::after { content: ""; position: absolute; inset: 0; width: 35%; background: var(--brand); border-radius: 3px; animation: slide 1.6s infinite ease-in-out; }
+  .bar::after { content: ""; position: absolute; inset: 0; width: 35%; background: linear-gradient(90deg, var(--brand), var(--gold)); border-radius: 3px; animation: slide 1.6s infinite ease-in-out; }
   @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
   .tip { font-size: 12.5px; color: var(--muted); min-height: 1.5em; transition: opacity .3s; }
   .writing { display: inline-flex; gap: 6px; align-items: center; }
@@ -132,7 +135,7 @@
   .ptabs button[aria-selected="true"] { color: var(--ink); border-color: var(--brand); }
   .codeblock { position: relative; margin: 12px 16px 0; }
   .codeblock pre { margin: 0; background: var(--code-bg); color: var(--code-ink); padding: 14px; border-radius: 10px; overflow: auto; font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; max-height: 420px; }
-  .copy { position: absolute; top: 8px; right: 8px; border: 1px solid #2a3560; background: #18224a; color: #cfd8ff; border-radius: 7px; font-size: 12px; padding: 3px 9px; }
+  .copy { position: absolute; top: 8px; right: 8px; border: 1px solid #22513a; background: #143426; color: #d5efe1; border-radius: 7px; font-size: 12px; padding: 3px 9px; }
   .codenote { padding: 10px 16px 16px; font-size: 12.5px; color: var(--muted); }
   .codenote ul { margin: 6px 0 0; padding-left: 18px; }
 
@@ -151,7 +154,7 @@
   .stars { display: inline-flex; flex-direction: row-reverse; justify-content: flex-end; gap: 2px; }
   .stars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
   .stars label { font-size: 26px; line-height: 1; color: var(--line); cursor: pointer; }
-  .stars input:checked ~ label, .stars label:hover, .stars label:hover ~ label { color: #f0a33a; }
+  .stars input:checked ~ label, .stars label:hover, .stars label:hover ~ label { color: var(--gold); }
   .stars input:focus-visible + label { outline: 2px solid var(--brand); border-radius: 4px; }
   .primary { border: 0; background: var(--brand); color: var(--brand-ink); padding: 10px 18px; border-radius: 10px; font-weight: 700; }
   .ghost { border: 1px solid var(--line); background: var(--surface); padding: 9px 14px; border-radius: 10px; }
@@ -168,7 +171,7 @@
 <header class="top">
   <div class="top-inner">
     <div class="brand">
-      <div class="mark" aria-hidden="true">N</div>
+      <div class="logo-wrap"><img class="logo" src="/natlas-logo.svg" alt="N-ATLaS" width="111" height="44"></div>
       <div>
         <h1>N-ATLAS Playground</h1>
         <p>Nigeria's AI language model, in Hausa, Igbo, Yoruba and English</p>

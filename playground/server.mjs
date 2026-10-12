@@ -43,6 +43,10 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
       return sendFile(res, path.join(here, "index.html"), "text/html; charset=utf-8");
     }
+    if (req.method === "GET" && url.pathname === "/natlas-logo.svg") {
+      res.setHeader("cache-control", "public, max-age=86400");
+      return sendFile(res, path.join(here, "natlas-logo.svg"), "image/svg+xml");
+    }
     if (req.method === "GET" && url.pathname === "/api/config") {
       return sendJSON(res, 200, { mock: MOCK, languages: LANGUAGES, model: process.env.NATLAS_MODEL ?? "NCAIR1/N-ATLaS" });
     }
