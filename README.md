@@ -138,6 +138,10 @@ npm install
 npm test        # builds, then runs the test suite against a mock N-ATLAS server
 ```
 
+## Contributing
+
+Contributions are welcome, from docs and translations to code. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Licence and attribution
 
 `natlas-js` is MIT-licensed. N-ATLAS itself is released by NCAIR and Awarri Technologies under its own licence, which is free for products with up to 1,000 monthly active users and requires attribution. Read the [model licence](https://huggingface.co/NCAIR1/N-ATLaS) before shipping.
