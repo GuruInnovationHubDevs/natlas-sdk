@@ -9,7 +9,7 @@ Thank you for testing. It takes about 20 minutes.
 
    ```bash
    mkdir natlas-test && cd natlas-test && npm init -y
-   npm install github:GuruInnovationHubDevs/natlas-sdk
+   npm install natlas-js
    ```
 
    ```js

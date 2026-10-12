@@ -559,7 +559,7 @@ function renderCode() {
     else if (state.mode === "summarize") code = setup + `final summary = await natlas.summarize(\n  ${dartStr(text)},\n  language: ${dl(lang)},\n);\nprint(summary.text);`;
     else code = setup + `await for (final chunk in natlas.chatStream(\n  [Message.user(${dartStr(text)})],\n  language: ${dl(lang)},\n)) {\n  stdout.write(chunk); // or setState(() => answer += chunk)\n}`;
   } else {
-    install = "npm install github:GuruInnovationHubDevs/natlas-sdk";
+    install = "npm install natlas-js";
     const setup = `import { NAtlas } from "natlas-js";\n\nconst natlas = new NAtlas({\n  baseURL: "${PUBLIC_URL}",\n  timeoutMs: 180_000,\n});\n\n`;
     if (state.platform === "rn") {
       const call = state.mode === "translate"

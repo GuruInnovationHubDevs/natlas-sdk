@@ -30,7 +30,7 @@ N-ATLAS is open, but building with it from the stacks most Nigerian web and mobi
 npm install natlas-js
 ```
 
-Until the package is published to npm, install it straight from the repository:
+To try the latest unreleased changes, install from GitHub instead (npm 10–11; npm 12 blocks GitHub installs by default):
 
 ```bash
 npm install github:GuruInnovationHubDevs/natlas-sdk
